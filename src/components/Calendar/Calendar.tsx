@@ -1,27 +1,67 @@
 import React from "react";
 import "./Calendar.css";
 
-const Calendar: React.FC = () => {
-  const year = 2025;
-  const month = 10; // 10 = November (0 index)
-  const date = new Date(year, month, 1);
+type CalendarProps = {
+  date: Date;
+};
+
+const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const Calendar: React.FC<CalendarProps> = ({ date }) => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const selectedDay = date.getDate();
+
   const monthName = date.toLocaleString("default", { month: "long" });
-  const startDay = date.getDay();
+
+  // Compute month structure directly here
+  const firstDayOfMonth = new Date(year, month, 1);
+  const startDay = firstDayOfMonth.getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const days = [];
-  for (let i = 0; i < startDay; i++) days.push(<div key={"e" + i} className="empty"></div>);
-  for (let i = 1; i <= daysInMonth; i++) days.push(<div key={i} className="date">{i}</div>);
+  const calendarRows: (number | null)[][] = [];
+  let current = 1 - startDay;
+
+  for (let week = 0; week < 6; week++) {
+    const row: (number | null)[] = [];
+    for (let day = 0; day < 7; day++) {
+      row.push(current > 0 && current <= daysInMonth ? current : null);
+      current++;
+    }
+    calendarRows.push(row);
+  }
 
   return (
     <div className="calendar-container">
-      <div className="calendar-header">{monthName} {year}</div>
-      <div className="calendar-grid">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="day-name">{d}</div>
-        ))}
-        {days}
+      {/* Month + Year */}
+      <div className="calendar-header">
+        {monthName} {year}
       </div>
+
+      {/* Weekday headers */}
+      <div className="calendar-row">
+        {daysOfWeek.map((d) => (
+          <div key={d} className="calendar-cell calendar-day">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Dates */}
+      {calendarRows.map((week, wi) => (
+        <div key={wi} className="calendar-row">
+          {week.map((day, di) => (
+            <div
+              key={di}
+              className={`calendar-cell ${
+                day === selectedDay ? "highlight" : ""
+              }`}
+            >
+              {day ?? ""}
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 };
